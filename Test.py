@@ -21,6 +21,7 @@ for i, f in enumerate(files):
     filenames.append(f)
     X.append(data)
 
+X = np.array(X)
 model = load_model('./model/multi_img_classification.model')
 
 prediction = model.predict(X)
