@@ -1,15 +1,17 @@
+import glob
 import numpy as np
 import os
 
 import keras.backend.tensorflow_backend as K
 import matplotlib.pyplot as plt
 import tensorflow as tf
+from PIL import Image
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.layers import Conv2D, MaxPooling2D, Dense, Flatten, Dropout
 from keras.models import Sequential
+from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
+from sklearn.model_selection import train_test_split
 
-# image data Generator
-#########################
 # data_gen = ImageDataGenerator(
 #     rotation_range=40,
 #     width_shift_range=0.2,
@@ -32,61 +34,52 @@ from keras.models import Sequential
 #     if i > 20:
 #         break
 #########################
+caltech_dir = "dataset/train"
+categories = ['food', 'portrait', 'scenery_city', 'scenery_nature']
+nb_classes = len(categories)
 
-# set multi_image_data.npy
-#########################
-# caltech_dir = "dataset/train"
-# categories = ['food', 'portrait', 'scenery_city', 'scenery_nature']
-# nb_classes = len(categories)
-#
-# image_w = 100
-# image_h = 100
-#
-# pixels = image_h * image_w * 3
-#
-# X = []
-# Y = []
-#
-# for idx, cat in enumerate(categories):
-#
-#     label = [0 for i in range(nb_classes)]
-#     label[idx] = 1
-#
-#     image_dir = caltech_dir + "/" + cat
-#     files = glob.glob(image_dir + "/*.jpg")
-#     print(cat, "파일 길이 : ", len(files))
-#     for i, f in enumerate(files):
-#         img = Image.open(f)
-#         img = img.convert("RGB")
-#         img = img.resize((image_w, image_h))
-#         data = np.array(img)
-#
-#         X.append(data)
-#         Y.append(label)
-#
-#         if i % 700 == 0:
-#             print(cat, " : ", f)
-#
-# X = np.array(X)
-# Y = np.array(Y)
-#
-# X_train, X_test, Y_train, Y_test = train_test_split(X, Y)
-# xy = (X_train, X_test, Y_train, Y_test)
-# np.save("dataset/multi_image.npy", xy)
-#
-# print("ok", len(Y))
-#########################
+image_w = 100
+image_h = 100
 
+pixels = image_h * image_w * 3
 
-#
-#########################
+X = []
+Y = []
 
-categories = ['food', 'portrait', 'scenery_city', 'scenery_nature']  # set categories
+for idx, cat in enumerate(categories):
+
+    label = [0 for i in range(nb_classes)]
+    label[idx] = 1
+
+    image_dir = caltech_dir + "/" + cat
+    files = glob.glob(image_dir + "/*.jpg")
+    print(cat, "파일 길이 : ", len(files))
+    for i, f in enumerate(files):
+        img = Image.open(f)
+        img = img.convert("RGB")
+        img = img.resize((image_w, image_h))
+        data = np.array(img)
+
+        X.append(data)
+        Y.append(label)
+
+        if i % 700 == 0:
+            print(cat, " : ", f)
+
+X = np.array(X)
+Y = np.array(Y)
+
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y)
+xy = (X_train, X_test, Y_train, Y_test)
+np.save("dataset/multi_image.npy", xy)
+
+print("ok", len(Y))
+
 config = tf.compat.v1.ConfigProto()
 config.gpu_options.allow_growth = True
 session = tf.compat.v1.Session(config=config)
 
-X_train, X_test, Y_train, Y_test = np.load('dataset/multi_image_data.npy', allow_pickle=True)
+X_train, X_test, Y_train, Y_test = np.load('dataset/multi_image.npy', allow_pickle=True)
 print(X_train.shape)
 print(X_train.shape[0])
 
@@ -130,7 +123,7 @@ y_loss = history.history['loss']
 x_len = np.arange(len(y_loss))
 
 plt.plot(x_len, y_val_loss, marker='.', c='red', label='val_set_loss')
-plt.plot(x_len, y_loss, marker='.', c='blue', label='train_set_oss')
+plt.plot(x_len, y_loss, marker='.', c='blue', label='train_set_loss')
 plt.legend()
 plt.xlabel('epochs')
 plt.ylabel('loss')
